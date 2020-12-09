@@ -5,16 +5,16 @@ secrets:
   - id: registry-password
     keyvault: https://{{.Values.KEYVAULT}}.vault.azure.net/secrets/registry-{{.Run.RegistryName}}-password
 steps:
-  # Build 
+  # Build
   - id: build-hello-world
     build: >
-      --build-arg REGISTRY_FROM_URL={{.Values.REGISTRY_FROM_URL}} 
-      -t {{.Run.Registry}}/hello-world:{{.Run.ID}} 
-      -f Dockerfile 
+      --build-arg FROM_URL={{.Values.FROM_URL}}
+      -t {{.Run.Registry}}/hello-world:{{.Run.ID}}
+      -f Dockerfile
       .
   - id: push-images
     when: ['build-hello-world']
-    push: 
+    push:
     - "{{.Run.Registry}}/hello-world:{{.Run.ID}}"
   - id: az-login
     when: ['-']
@@ -26,11 +26,11 @@ steps:
     # When using - in a go template named element under . notation, the format of {{index .Object "name-pair"}} must be used
     # See https://golang.org/pkg/text/template/#hdr-Arguments
     cmd: >
-      az container create 
-      --resource-group "{{.Values.ACI_RG}}" 
-      --name "{{.Values.ACI}}" 
-      --image "{{.Run.Registry}}/hello-world:{{.Run.ID}}" 
-      --registry-username "{{index .Secrets "registry-user"}}" 
-      --registry-password "{{index .Secrets "registry-password"}}" 
-      --ip-address public 
+      az container create
+      --resource-group "{{.Values.ACI_RG}}"
+      --name "{{.Values.ACI}}"
+      --image "{{.Run.Registry}}/hello-world:{{.Run.ID}}"
+      --registry-username "{{index .Secrets "registry-user"}}"
+      --registry-password "{{index .Secrets "registry-password"}}"
+      --ip-address public
       --ports 80
