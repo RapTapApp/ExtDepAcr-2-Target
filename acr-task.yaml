@@ -1,36 +1,43 @@
 version: v1.1.0
 secrets:
-  - id: registry-user
-    keyvault: https://{{.Values.KEYVAULT}}.vault.azure.net/secrets/registry-{{.Run.RegistryName}}-user
-  - id: registry-password
-    keyvault: https://{{.Values.KEYVAULT}}.vault.azure.net/secrets/registry-{{.Run.RegistryName}}-password
+  - id: deploy-registry-username
+    keyvault: {{.Values.DEPLOY_USERNAME_URL}}
+
+  - id: deploy-registry-password
+    keyvault: {{.Values.DEPLOY_PASSWORD_URL}}
+
 steps:
   # Build
-  - id: build-hello-world
+  - id: build-image
     build: >
-      --build-arg FROM_URL={{.Values.FROM_URL}}
-      -t {{.Run.Registry}}/hello-world:{{.Run.ID}}
+      --build-arg FROM_REGISTRY_URL={{.Values.FROM_REGISTRY_URL}}
+      -t {{.Run.Registry}}/{{.Values.TARGET_IMAGEREPO}}:{{.Run.ID}}
       -f Dockerfile
       .
-  - id: push-images
-    when: ['build-hello-world']
+
+  - id: push-image
+    when: ['build-image']
     push:
-    - "{{.Run.Registry}}/hello-world:{{.Run.ID}}"
+    - "{{.Run.Registry}}/{{.Values.TARGET_IMAGEREPO}}:{{.Run.ID}}"
+
   - id: az-login
     when: ['-']
     # login with the identity of the task
     # run concurrently while the image is building: when: [-] indicates, wait for nothing
     cmd: az login --identity > /dev/null
+
   - id: deploy-aci
     when: ['az-login', 'push-images']
     # When using - in a go template named element under . notation, the format of {{index .Object "name-pair"}} must be used
     # See https://golang.org/pkg/text/template/#hdr-Arguments
     cmd: >
       az container create
+      --subscription "{{.Values.ACI_SUB}}"
+      --location "{{.Values.ACI_LOC}}"
       --resource-group "{{.Values.ACI_RG}}"
       --name "{{.Values.ACI}}"
-      --image "{{.Run.Registry}}/hello-world:{{.Run.ID}}"
-      --registry-username "{{index .Secrets "registry-user"}}"
-      --registry-password "{{index .Secrets "registry-password"}}"
+      --image "{{.Run.Registry}}/{{.Values.TARGET_IMAGEREPO}}:{{.Run.ID}}"
+      --registry-username "{{index .Secrets "deploy-registry-username"}}"
+      --registry-password "{{index .Secrets "deploy-registry-password"}}"
       --ip-address public
       --ports 80
