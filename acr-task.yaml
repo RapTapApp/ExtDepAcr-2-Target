@@ -35,7 +35,7 @@ steps:
       --subscription "{{.Values.ACI_SUB}}"
       --location "{{.Values.ACI_LOC}}"
       --resource-group "{{.Values.ACI_RG}}"
-      --name "{{.Values.ACI}}"
+      --name "{{.Values.ACI_NAME}}"
       --image "{{.Run.Registry}}/{{.Values.TARGET_IMAGEREPO}}:{{.Run.ID}}"
       --registry-username "{{index .Secrets "deploy-registry-username"}}"
       --registry-password "{{index .Secrets "deploy-registry-password"}}"
