@@ -27,7 +27,7 @@ steps:
     cmd: az login --identity > /dev/null
 
   - id: deploy-aci
-    when: ['az-login', 'push-images']
+    when: ['az-login', 'push-image']
     # When using - in a go template named element under . notation, the format of {{index .Object "name-pair"}} must be used
     # See https://golang.org/pkg/text/template/#hdr-Arguments
     cmd: >
