@@ -10,15 +10,14 @@ steps:
   # Build
   - id: build-image
     build: >
-      --build-arg FROM_REGISTRY_URL={{.Values.FROM_REGISTRY_URL}}
-      -t {{.Run.Registry}}/{{.Values.TARGET_IMAGEREPO}}:{{.Run.ID}}
+      -t {{.Run.Registry}}/target-app-builds/target-app:{{.Run.ID}}
       -f Dockerfile
       .
 
   - id: push-image
     when: ['build-image']
     push:
-    - "{{.Run.Registry}}/{{.Values.TARGET_IMAGEREPO}}:{{.Run.ID}}"
+    - "{{.Run.Registry}}/target-app-builds/target-app:{{.Run.ID}}"
 
   - id: az-login
     when: ['-']
@@ -36,7 +35,7 @@ steps:
       --location "{{.Values.ACI_LOC}}"
       --resource-group "{{.Values.ACI_RG}}"
       --name "{{.Values.ACI_NAME}}"
-      --image "{{.Run.Registry}}/{{.Values.TARGET_IMAGEREPO}}:{{.Run.ID}}"
+      --image "{{.Run.Registry}}/target-app-builds/target-app:{{.Run.ID}}"
       --registry-username "{{index .Secrets "deploy-registry-username"}}"
       --registry-password "{{index .Secrets "deploy-registry-password"}}"
       --ip-address public
